@@ -46,6 +46,8 @@ else
     echo "==> pre-commit already installed"
 fi
 
+uv run pre-commit install
+
 # ------------------------------------------------------------
 # 4. Install project (Python-native launcher)
 # ------------------------------------------------------------
