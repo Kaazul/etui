@@ -1,0 +1,33 @@
+Screen {
+    layout: horizontal;
+}
+
+#sidebar {
+    width: 30%;
+    border: tall green;
+    height: 100%;
+}
+
+#main {
+    width: 70%;
+    height: 100%;
+    border: tall blue;
+}
+
+#argpanel {
+    border: solid gray;
+    padding: 1;
+}
+
+RichLog {
+    height: 1fr;
+    border: solid orange;
+}
+
+Input {
+    dock: bottom;
+}
+
+Button {
+    margin-top: 1;
+}
