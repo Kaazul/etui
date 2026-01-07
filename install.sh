@@ -4,6 +4,25 @@
 
 set -euo pipefail
 
+DEV_MODE=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --dev)
+            DEV_MODE=true
+            ;;
+        --help|-h)
+            echo "Usage: ./install.sh [--dev]"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg"
+            exit 1
+            ;;
+    esac
+done
+
+
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> Installing eTUI project from: $PROJECT_ROOT"
@@ -37,25 +56,33 @@ echo "==> Syncing dependencies"
 uv sync
 
 # ------------------------------------------------------------
-# 3. Ensure pre-commit is installed
+# 3. Development mode install (if --dev is set)
 # ------------------------------------------------------------
-if ! command -v pre-commit >/dev/null 2>&1; then
-    echo "==> Installing pre-commit"
-    uv pip install pre-commit
+
+if [ "$DEV_MODE" = true ]; then
+    echo "==> Setting up pre-commit hooks"
+
+    if ! command -v pre-commit >/dev/null 2>&1; then
+        echo "==> Installing pre-commit"
+        uv pip install pre-commit
+    else
+        echo "==> pre-commit already installed"
+    fi
+
+    uv run pre-commit install
 else
-    echo "==> pre-commit already installed"
+    echo "==> Skipping pre-commit (not in --dev mode)"
 fi
 
-uv run pre-commit install
 
 # ------------------------------------------------------------
-# 4. Install project (Python-native launcher)
+# 4. Install project
 # ------------------------------------------------------------
 echo "==> Installing project in editable mode"
 uv pip install -e .
 
 # ------------------------------------------------------------
-# 5. Add etui shell function (usage convenience)
+# 5. Add etui shell function
 # ------------------------------------------------------------
 BASHRC="$HOME/.bashrc"
 

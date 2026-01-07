@@ -7,7 +7,7 @@ from textual.reactive import reactive
 from etui.scriptlauncher import ScriptLauncher
 from etui.screen_helper import NotImplementedScreen, QuitScreen, InfoScreen
 from etui.file_browser import FileBrowser
-from etui.file_utils import ETUI_PATH, LOG_PATH, TCSS_PATH
+from etui.file_utils import ETUI_PATH, LOG_PATH, TCSS_PATH, get_version
 from etui.logging import cleanup_old_logs
 
 README_PATH = ETUI_PATH / "README.md"
@@ -69,6 +69,7 @@ class ETui(App):
         super().__init__()
         self.token: str | None = None
         self.title = "ETUI"
+        self.subtitle = get_version()
 
     async def on_mount(self) -> None:
         cleanup_old_logs()
