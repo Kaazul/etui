@@ -6,7 +6,7 @@ ETUI_PATH = Path(__file__).resolve().parent
 ROOT_PATH = ETUI_PATH.parent.parent
 TCSS_PATH = ETUI_PATH / "tcss"
 
-TEST_PATH = ROOT_PATH / "test"
+TEST_PATH = ROOT_PATH / "tests"
 LOG_PATH = ROOT_PATH / "log"
 
 PYTHON_UV = ROOT_PATH / ".venv/bin/python"

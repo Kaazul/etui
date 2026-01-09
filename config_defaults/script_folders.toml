@@ -1,0 +1,8 @@
+# Default script folders
+[[folders]]
+name = "Codebase Tests"
+path = "tests"
+executable = ".venv/bin/python"
+cwd = ""
+file_extension = ".py"  # Only files with this extension will be shown
+exclude_start = ["__"]  # exclude files that start with these characters
