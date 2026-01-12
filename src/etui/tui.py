@@ -4,6 +4,7 @@ from textual.widgets import Button, Header, Footer
 from textual.containers import Vertical
 from textual.reactive import reactive
 
+from etui.config import ensure_user_configs
 from etui.scriptlauncher import ScriptLauncher
 from etui.screen_helper import NotImplementedScreen, QuitScreen, InfoScreen
 from etui.file_browser import FileBrowser
@@ -67,7 +68,7 @@ class ETui(App):
 
     def __init__(self):
         super().__init__()
-        self.token: str | None = None
+        ensure_user_configs()
         self.title = "ETUI"
         self.subtitle = get_version()
 

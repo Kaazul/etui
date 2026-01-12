@@ -1,0 +1,12 @@
+# Default settings
+
+[tui]
+theme = "dark"
+accent_color = "blue"
+show_footer = true
+show_header = true
+
+[logging]
+retention_days = 30
+script_log_dir = "logs"
+
