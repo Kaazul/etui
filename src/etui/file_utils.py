@@ -11,14 +11,6 @@ LOG_PATH = ROOT_PATH / "log"
 
 PYTHON_UV = ROOT_PATH / ".venv/bin/python"
 
-# ToDo: This shouldn't be hardcoded
-SCRIPT_FOLDERS = {
-    "Codebase Tests": {
-        "path": TEST_PATH,
-        "python": PYTHON_UV,
-    },
-}
-
 
 def get_version() -> str:
     """Reads the version of the etui project"""

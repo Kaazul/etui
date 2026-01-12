@@ -17,8 +17,9 @@ from textual.widgets import (
 )
 from textual.containers import Horizontal, Vertical
 
+from etui.config import load_script_folders
 from etui.logging import create_log_file, format_line
-from etui.file_utils import TCSS_PATH, SCRIPT_FOLDERS, extract_argparse
+from etui.file_utils import TCSS_PATH, extract_argparse
 from etui.screen_helper import ArgFlagRow, ArgInputRow
 
 
@@ -33,9 +34,10 @@ class ScriptLauncher(Screen):
         super().__init__()
         self.title = title
         self.process: asyncio.subprocess.Process | None = None
+        self.script_folders = load_script_folders()
         self.folder_select = Select(
-            options=[(name, name) for name in SCRIPT_FOLDERS],
-            value=list(SCRIPT_FOLDERS.keys())[0],
+            options=[(name, name) for name in self.script_folders],
+            value=list(self.script_folders.keys())[0],
             id="folder_select",
         )
         self.script_list = ListView(id="script_list")
@@ -108,7 +110,7 @@ class ScriptLauncher(Screen):
         script_path: Path = item.script_path
 
         folder_name = self.folder_select.value
-        python_exe = SCRIPT_FOLDERS[folder_name]["python"]
+        python_exe = self.script_folders[folder_name].executable
 
         args = []
         for row in self.arg_panel.children:
@@ -192,20 +194,17 @@ class ScriptLauncher(Screen):
         elif event.button.id == "stop_button":
             await self.action_terminate_process()
 
-# ToDo: Add possibility to also start other files besides python files.
-    def load_scripts_for_folder(
-        self, folder_name: str, ex_starts_with: tuple[str] = ("_", "#")
-    ):
+    # ToDo: Add possibility to also start other files besides python files.
+    def load_scripts_for_folder(self, folder_name: str):
         """Loads and displays all py scripts in chosen folder.
 
-        Excludes py scripts starting with chars defined with 'ex_starts_with'."""
+        Excludes py scripts starting with chars defined in ScriptFolder.exclude_start."""
         self.script_list.clear()
-        folder_info = SCRIPT_FOLDERS[folder_name]
-        folder_path = folder_info["path"]
-        if not folder_path.exists():
+        script_folder = self.script_folders[folder_name]
+        if not script_folder.path.exists():
             return
-        for script in sorted(folder_path.glob("*.py")):
-            if script.name[0] in ex_starts_with:
+        for script in sorted(script_folder.path.glob(script_folder.file_extension)):
+            if script.name[0] in script_folder.exclude_start:
                 continue
             item = ListItem(Label(script.name))
             item.script_path = script
