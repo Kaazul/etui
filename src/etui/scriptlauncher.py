@@ -14,12 +14,14 @@ from textual.widgets import (
     ListView,
     ListItem,
     Select,
+    Checkbox,
+    Static,
 )
 from textual.containers import Horizontal, Vertical
 
-from etui.config import load_script_folders
+from etui.config import load_script_folders, save_script_folders, ScriptFolder
 from etui.logging import create_log_file, format_line
-from etui.file_utils import TCSS_PATH, extract_argparse
+from etui.file_utils import TCSS_PATH, extract_argparse, ROOT_PATH, PYTHON_UV
 from etui.screen_helper import ArgFlagRow, ArgInputRow
 
 
@@ -219,3 +221,85 @@ class ScriptLauncher(Screen):
         self.output_box.write(rich_text, scroll_end=True)
         self.log_file.write(log_text + "\n")
         self.log_file.flush()
+
+
+class ScriptFolderManager(Screen):
+    """Reusable widget for managing script folders."""
+
+    def __init__(self, title: str = "ScriptFolder Manager") -> None:
+        super().__init__()
+        self.title = title
+        self.script_folders = load_script_folders()
+        self.folder_list = ListView()
+        self.name_input = Input(placeholder="Name")
+        self.path_input = Input(placeholder="Folder path")
+
+        self.python_input = Input(placeholder="Python executable (optional)")
+
+        self.cwd_checkbox = Checkbox(
+            "Check, if working directory should be folder path",
+            value=True,
+        )
+
+    def compose(self):
+        yield Static("Script Folders", classes="title")
+        yield self.folder_list
+        yield Static("Add Script Folder", classes="subtitle")
+        yield self.name_input
+        yield self.path_input
+        yield self.python_input
+        yield self.cwd_checkbox
+        with Horizontal():
+            yield Button("Add", id="add", variant="success")
+            yield Button("Remove Selected", id="remove", variant="error")
+
+    async def on_mount(self):
+        self.refresh_folder_list()
+
+    def refresh_folder_list(self):
+        self.folder_list.clear()
+
+        for folder in load_script_folders().values():
+            label = f"{folder.name}  →  {folder.path}"
+            self.folder_list.append(ListItem(Label(label)))
+
+    async def on_button_pressed(self, event: Button.Pressed):
+        if event.button.id == "add":
+            self._add_folder()
+
+        elif event.button.id == "remove":
+            self._remove_selected()
+
+    def _add_folder(self):
+        name = self.name_input.value.strip()
+        path = self.path_input.value.strip()
+        python = self.python_input.value.strip()
+
+        python = python or str(PYTHON_UV)
+
+        cwd = path if self.cwd_checkbox.value else ROOT_PATH
+
+        folders = load_script_folders()
+        if name in folders:
+            raise Exception(f"Folder {name} already exists")
+        folders[name] = ScriptFolder(name, path, python, cwd)
+        save_script_folders(folders)
+        self.refresh_folder_list()
+        self._clear_inputs()
+
+    def _remove_selected(self):
+        index = self.folder_list.index
+        if index is None:
+            return
+
+        folders = load_script_folders()
+        folders.pop(index)
+
+        save_script_folders(folders)
+        self.refresh()
+
+    def _clear_inputs(self):
+        self.name_input.value = ""
+        self.path_input.value = ""
+        self.python_input.value = ""
+        self.cwd_checkbox.value = True
