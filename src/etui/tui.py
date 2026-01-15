@@ -5,7 +5,7 @@ from textual.containers import Vertical
 from textual.reactive import reactive
 
 from etui.config import ensure_user_configs
-from etui.scriptlauncher import ScriptLauncher
+from etui.scriptlauncher import ScriptLauncher, ScriptFolderManager
 from etui.screen_helper import NotImplementedScreen, QuitScreen, InfoScreen
 from etui.file_browser import FileBrowser
 from etui.file_utils import ETUI_PATH, LOG_PATH, TCSS_PATH, get_version
@@ -22,6 +22,7 @@ class MainScreen(Screen):
         with Vertical(id="menu"):
             yield Button("Scriptlauncher", id="scriptlauncher")
             yield Button("Log Viewer", id="logview")
+            yield Button("ScriptFolder Manager", id="foldermanager")
             yield Button("Info", id="info")
         yield Footer()
 
@@ -45,11 +46,13 @@ class MainScreen(Screen):
         button_id = event.button.id
 
         if button_id == "scriptlauncher":
-            self.app.push_screen(ScriptLauncher(title=event.button.label))
+            self.app.push_screen(ScriptLauncher())
         elif button_id == "info":
             self.app.push_screen(InfoScreen(README_PATH))
         elif button_id == "logview":
             self.app.push_screen(FileBrowser(LOG_PATH))
+        elif button_id == "foldermanager":
+            self.app.push_screen(ScriptFolderManager())
         else:
             self.app.push_screen(NotImplementedScreen(title=event.button.label))
 

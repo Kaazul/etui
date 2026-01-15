@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import tomllib
 
+import tomli_w
 from platformdirs import user_config_dir
 
 from etui.file_utils import ROOT_PATH, PYTHON_UV
@@ -22,7 +23,18 @@ class ScriptFolder:
     executable: Path = PYTHON_UV
     cwd: Path = ROOT_PATH
     file_extension: str = "*.py"
-    exclude_start: tuple[str] = ("__",)
+    exclude_start: tuple[str] = ("_", ".")
+
+    def to_toml_dict(self) -> dict[str, str | tuple[str]]:
+        """Returns dict for saving to toml."""
+        return {
+            "name": self.name,
+            "path": str(self.path),
+            "executable": str(self.executable),
+            "cwd": str(self.cwd),
+            "file_extension": self.file_extension,
+            "exclude_start": self.exclude_start,
+        }
 
 
 def ensure_user_configs():
@@ -48,15 +60,29 @@ def load_script_folders() -> dict[str, ScriptFolder]:
     toml_folders = load_toml(USER_CONFIG_DIR / SCRIPT_FOLDERS_FILE).get("folders", [])
     folders = {}
     for folder in toml_folders:
+        if not folder["file_extension"].startswith("*"):
+            folder["file_extension"] = "*" + folder["file_extension"]
         folders[folder["name"]] = ScriptFolder(
             folder["name"],
             Path(folder["path"]),
             Path(folder["executable"]),
             folder["cwd"],
-            "*" + folder["file_extension"],
+            folder["file_extension"],
             folder["exclude_start"],
         )
     return folders
+
+
+def save_script_folders(
+    folders: dict[str, ScriptFolder],
+    file_path: Path = USER_CONFIG_DIR / SCRIPT_FOLDERS_FILE,
+):
+    """Saves script folders to a toml file."""
+    folder_list = []
+    for folder in folders.values():
+        folder_list.append(folder.to_toml_dict())
+    with file_path.open("wb") as f:
+        tomli_w.dump({"folders": folder_list}, f)
 
 
 class Config:
