@@ -4,8 +4,17 @@ from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.screen import Screen, ModalScreen
-from textual.widgets import Static, Button, Label, MarkdownViewer, Header, Input, Checkbox
+from textual.widgets import (
+    Static,
+    Button,
+    Label,
+    MarkdownViewer,
+    Header,
+    Input,
+    Checkbox,
+)
 from textual.containers import Vertical, Grid
+
 
 class ArgInputRow(Static):
     """One input row for a single CLI argument."""
@@ -43,19 +52,52 @@ class ArgFlagRow(Static):
         return [self.arg_name] if checkbox.value else []
 
 
-class QuitScreen(ModalScreen[bool]):
-    """Screen with a dialog to quit."""
+class QuestionScreen(ModalScreen[bool]):
+    """Screen with a dialog to ask yes/no questions."""
+
+    BUTTON_VARIANTS = ["default", "primary", "success", "warning", "error"]
+
+    def __init__(
+        self,
+        question: str = "Are you sure?",
+        yes: str = "Confirm",
+        yes_variant="success",
+        no: str = "Cancel",
+        no_variant: str = "error",
+    ) -> None:
+        """Screen with a dialog to ask yes/no questions.
+
+        Attributes
+        ----------
+        question
+            defines the question that is displayed
+        yes
+            defines the name displayed on the confirmation button
+        yes_variant
+            defines the Button.variant (design) of the confirmation button
+        no
+            the name displayed on the cancel button
+        no_variant
+            defines the Button.variant (design) of the cancel button"""
+        super().__init__()
+        self._question = question
+        self._yes = yes
+        self._yes_variant = (
+            yes_variant if yes_variant in self.BUTTON_VARIANTS else "success"
+        )
+        self._no = no
+        self._no_variant = no_variant if no_variant in self.BUTTON_VARIANTS else "error"
 
     def compose(self) -> ComposeResult:
         yield Grid(
-            Label("Are you sure you want to quit?", id="question"),
-            Button("Quit", variant="error", id="quit"),
-            Button("Cancel", variant="primary", id="cancel"),
+            Label(self._question, id="question"),
+            Button(self._yes, variant=self._yes_variant, id="yes"),
+            Button(self._no, variant=self._no_variant, id="no"),
             id="dialog",
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "quit":
+        if event.button.id == "yes":
             self.dismiss(True)
         else:
             self.dismiss(False)
@@ -78,6 +120,7 @@ class InfoScreen(Screen):
 
 class NotImplementedScreen(Screen):
     """Placeholder Screen for not yet implemented functionalities."""
+
     def __init__(self, title: str = "Not Implemented") -> None:
         super().__init__()
         self.title = title
