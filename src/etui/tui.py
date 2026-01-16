@@ -6,7 +6,7 @@ from textual.reactive import reactive
 
 from etui.config import ensure_user_configs
 from etui.scriptlauncher import ScriptLauncher, ScriptFolderManager
-from etui.screen_helper import NotImplementedScreen, QuitScreen, InfoScreen
+from etui.screen_helper import NotImplementedScreen, QuestionScreen, InfoScreen
 from etui.file_browser import FileBrowser
 from etui.file_utils import ETUI_PATH, LOG_PATH, TCSS_PATH, get_version
 from etui.logging import cleanup_old_logs
@@ -91,7 +91,12 @@ class ETui(App):
             if is_quit:
                 self.exit()
 
-        self.push_screen(QuitScreen(), check_quit)
+        self.push_screen(
+            QuestionScreen(
+                "Do you really want to quit?", yes_variant="error", no_variant="primary"
+            ),
+            check_quit,
+        )
 
 
 def main():
