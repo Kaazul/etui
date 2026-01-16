@@ -16,7 +16,7 @@ from etui.file_utils import ROOT_PATH, TCSS_PATH
 class FileBrowser(Screen):
     """FileBrowser app."""
 
-    CSS_PATH = str( TCSS_PATH / "file_browser.tcss")
+    CSS_PATH = str(TCSS_PATH / "file_browser.tcss")
     BINDINGS = [
         ("f", "toggle_files", "Toggle Files"),
         ("q", "quit", "Quit"),
@@ -35,7 +35,7 @@ class FileBrowser(Screen):
 
     def compose(self) -> ComposeResult:
         path = self.root_path
-        yield Header()
+        yield Header(show_clock=True)
         with Container():
             yield DirectoryTree(path, id="tree-view")
             with VerticalScroll(id="file-view"):

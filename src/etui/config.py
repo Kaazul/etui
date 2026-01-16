@@ -47,6 +47,15 @@ def ensure_user_configs():
             shutil.copy(default_config, user_config)
 
 
+def restore_default_script_folders():
+    """Restores default script folders.
+
+    CAVEAT: This overwrites the config script folder."""
+    user_config = USER_CONFIG_DIR / SCRIPT_FOLDERS_FILE
+    default_config = DEFAULT_CONFIG_DIR / SCRIPT_FOLDERS_FILE
+    shutil.copy(default_config, user_config)
+
+
 def load_toml(path: Path) -> dict:
     with path.open("rb") as f:
         return tomllib.load(f)
