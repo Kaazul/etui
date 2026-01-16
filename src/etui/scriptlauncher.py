@@ -19,10 +19,15 @@ from textual.widgets import (
 )
 from textual.containers import Horizontal, Vertical
 
-from etui.config import load_script_folders, save_script_folders, ScriptFolder
+from etui.config import (
+    load_script_folders,
+    save_script_folders,
+    ScriptFolder,
+    restore_default_script_folders,
+)
 from etui.logging import create_log_file, format_line
 from etui.file_utils import TCSS_PATH, extract_argparse, ROOT_PATH, PYTHON_UV
-from etui.screen_helper import ArgFlagRow, ArgInputRow
+from etui.screen_helper import ArgFlagRow, ArgInputRow, QuestionScreen
 
 
 class ScriptLauncher(Screen):
@@ -44,8 +49,8 @@ class ScriptLauncher(Screen):
         )
         self.script_list = ListView(id="script_list")
         self.arg_panel = Vertical(id="argpanel")
-        self.output_box = RichLog()
-        self.input_box = Input(placeholder="Send input to script…")
+        self.output_box = RichLog(id="output_box")
+        self.input_box = Input(placeholder="Send input to script…", id="input_box")
         self.log_file_path: Path | None = None
         self.log_file: TextIOWrapper | None = None
 
@@ -230,7 +235,8 @@ class ScriptFolderManager(Screen):
         super().__init__()
         self.title = title
         self.script_folders = load_script_folders()
-        self.folder_list = ListView()
+        self.folder_list_view = ListView()
+        self._folder_list: list[ScriptFolder] = []
         self.name_input = Input(placeholder="Name")
         self.path_input = Input(placeholder="Folder path")
 
@@ -242,8 +248,9 @@ class ScriptFolderManager(Screen):
         )
 
     def compose(self):
+        yield Header(show_clock=True)
         yield Static("Script Folders", classes="title")
-        yield self.folder_list
+        yield self.folder_list_view
         yield Static("Add Script Folder", classes="subtitle")
         yield self.name_input
         yield self.path_input
@@ -252,23 +259,29 @@ class ScriptFolderManager(Screen):
         with Horizontal():
             yield Button("Add", id="add", variant="success")
             yield Button("Remove Selected", id="remove", variant="error")
+            yield Button("Restore Default", id="default", variant="warning")
+        yield Footer()
 
     async def on_mount(self):
         self.refresh_folder_list()
 
     def refresh_folder_list(self):
-        self.folder_list.clear()
+        self.folder_list_view.clear()
 
         for folder in load_script_folders().values():
             label = f"{folder.name}  →  {folder.path}"
-            self.folder_list.append(ListItem(Label(label)))
+            self.folder_list_view.append(ListItem(Label(label)))
+            self._folder_list.append(folder)
 
     async def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "add":
             self._add_folder()
 
         elif event.button.id == "remove":
-            self._remove_selected()
+            self._check_remove_selected()
+
+        elif event.button.id == "default":
+            self._check_restore_default()
 
     def _add_folder(self):
         name = self.name_input.value.strip()
@@ -287,16 +300,38 @@ class ScriptFolderManager(Screen):
         self.refresh_folder_list()
         self._clear_inputs()
 
-    def _remove_selected(self):
-        index = self.folder_list.index
-        if index is None:
-            return
+    def _check_remove_selected(self):
+        msg = "Please confirm if you want to remove the folder"
 
-        folders = load_script_folders()
-        folders.pop(index)
+        self.app.push_screen(
+            QuestionScreen(msg, yes_variant="error", no_variant="primary"),
+            self._remove_selected_folder,
+        )
 
-        save_script_folders(folders)
-        self.refresh()
+    def _remove_selected_folder(self, is_confirmed: bool = False):
+        if is_confirmed:
+            index = self.folder_list_view.index
+            if index is None:
+                return
+            folders = load_script_folders()
+            folders.pop(self._folder_list[index].name)
+            save_script_folders(folders)
+        self.refresh_folder_list()
+
+    def _check_restore_default(self):
+        msg = (
+            "Are you sure to restore default folders?\n"
+            "This will delete all added folders from the folder list"
+        )
+        self.app.push_screen(
+            QuestionScreen(msg, yes_variant="error", no_variant="primary"),
+            self._restore_default,
+        )
+
+    def _restore_default(self, is_confirmed: bool = False):
+        if is_confirmed:
+            restore_default_script_folders()
+        self.refresh_folder_list()
 
     def _clear_inputs(self):
         self.name_input.value = ""
