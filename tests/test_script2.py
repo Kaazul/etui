@@ -24,8 +24,5 @@ if __name__ == "__main__":
     parser.add_argument("--loglevel", default="INFO", help="logging level")
     parser.add_argument("--logfile", type=str, help="log file")
     parser.add_argument("--debug", action="store_true")
-    subparser = parser.add_subparsers()
-    child = subparser.add_parser("child")
-    child.add_argument("--child_arg", default="child_default")
     args = parser.parse_args()
     main(args)

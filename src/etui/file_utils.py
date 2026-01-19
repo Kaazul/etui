@@ -1,3 +1,6 @@
+"""Utility classes and functions for file reading and manipulation."""
+
+from dataclasses import dataclass
 from pathlib import Path
 from importlib.metadata import version, PackageNotFoundError
 
@@ -10,6 +13,22 @@ TEST_PATH = ROOT_PATH / "tests"
 LOG_PATH = ROOT_PATH / "log"
 
 PYTHON_UV = ROOT_PATH / ".venv/bin/python"
+
+
+@dataclass
+class ParserArgument:
+    name: str
+    required: bool = False
+    default: str | None = None
+    action: str | None = None
+    type: str = "str"
+    help: str = ""
+
+
+@dataclass
+class Parser:
+    name: str
+    args: list[ParserArgument]
 
 
 def get_version() -> str:
@@ -30,33 +49,32 @@ def extract_argparse(script_path: Path, multiple_parsers: bool = True) -> dict:
     if not arg_lines:
         return parsers
     for line in arg_lines:
-        parser = line.split(".")[0].lstrip()
-        if not parsers.get(parser):
-            parsers[parser] = []
-        arg_info = {
-            "name": "",
-            "required": False,
-            "default": None,
-            "action": None,
-            "help": "",
-        }
+        parser_name = line.split(".")[0].lstrip()  # Get parser name
+        if not parsers.get(parser_name):
+            parsers[parser_name] = Parser(parser_name, [])
+        arg_name, arg_required, arg_default = "", False, None
+        arg_action, arg_type, arg_help = None, "str", ""
         params = line.split("(")[1].rstrip().rstrip(")").split(",")
         name_set = False  # There could be two names, e.g.: '-i, --ip'
         for param in params:
             if "=" in param:
                 if "required" in param:
-                    arg_info["required"] = True if "True" in param else False
+                    arg_required = True if "True" in param else False
                 elif "default" in param:
-                    arg_info["default"] = param.split("=")[1].strip().strip('"')
+                    arg_default = param.split("=")[1].strip().strip('"')
                 elif "action" in param:
-                    arg_info["action"] = param.split("=")[1].strip().strip('"')
+                    arg_action = param.split("=")[1].strip().strip('"')
                 elif "help" in param:
-                    arg_info["help"] = param.split("=")[1].strip().strip('"')
+                    arg_help = param.split("=")[1].strip().strip('"')
             else:
                 if not name_set:
-                    arg_info["name"] = param.strip().strip('"')
+                    arg_name = param.strip().strip('"')
                     name_set = True
-        parsers[parser].append(arg_info)
+        parsers[parser_name].args.append(
+            ParserArgument(
+                arg_name, arg_required, arg_default, arg_action, arg_type, arg_help
+            )
+        )
     # ToDo: Remove as soon as multiple parser problem is fixed
     if not multiple_parsers:
         for value in parsers.values():
@@ -65,7 +83,11 @@ def extract_argparse(script_path: Path, multiple_parsers: bool = True) -> dict:
 
 
 def _argparse_helper(lines: list[str]) -> list[str]:
-    """Returns list of argparse arguments from a script. in 1 line per argument."""
+    """Returns list of argparse arguments from a script in 1 line per argument.
+
+    Due to file formatting it is possible that an argument is added to a parser in a
+    python script in more than one line. This helper function returns all added arguments
+    in 1 string per argument without a newline character."""
     arg_lines = []
     arg_parts = []  # For multi-line added args
     for line in lines:

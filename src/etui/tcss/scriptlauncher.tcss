@@ -13,9 +13,13 @@ ScriptLauncher {
         border: tall blue;
     }
 
-    #argpanel {
+    #arg_panel {
         border: solid gray;
         padding: 1;
+    }
+
+    #parser_panel {
+        height: auto;
     }
 
     #output_box {
