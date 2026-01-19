@@ -45,12 +45,6 @@ class FileBrowser(Screen):
     def on_mount(self) -> None:
         self.query_one(DirectoryTree).focus()
 
-        def theme_change(_signal) -> None:
-            """Force the syntax to use a different theme."""
-            self.watch_path(self.path)
-
-        self.app.theme_changed_signal.subscribe(self, theme_change)
-
     def on_directory_tree_file_selected(
         self, event: DirectoryTree.FileSelected
     ) -> None:

@@ -12,6 +12,7 @@ from textual.widgets import (
     Header,
     Input,
     Checkbox,
+    Footer,
 )
 from textual.containers import Vertical, Grid
 
@@ -104,18 +105,28 @@ class QuestionScreen(ModalScreen[bool]):
 
 
 class InfoScreen(Screen):
+    BINDINGS = [
+        ("f", "toggle_toc", "Toggle TOC"),
+    ]
+
     def __init__(self, file_path: Path, title: str = "Info") -> None:
         super().__init__()
         self.file_path = file_path
         self.title = title
         with open(self.file_path, "r", encoding="utf-8") as file:
             self.md_content = file.read()
+        self.md_viewer = MarkdownViewer(self.md_content, show_table_of_contents=True)
+        self.md_viewer.code_indent_guides = False
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True, name=self.title, id=self.title)
-        markdown_viewer = MarkdownViewer(self.md_content, show_table_of_contents=True)
-        markdown_viewer.code_indent_guides = False
-        yield markdown_viewer
+        yield self.md_viewer
+        yield Footer()
+
+    def action_toggle_toc(self) -> None:
+        self.md_viewer.show_table_of_contents = (
+            not self.md_viewer.show_table_of_contents
+        )
 
 
 class NotImplementedScreen(Screen):

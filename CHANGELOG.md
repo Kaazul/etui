@@ -5,13 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project (more or less) adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.4.0] - 2026-01-19
+## [0.4.1] - 2026-01-19
 
 ### Added:
 - Subparser/Commands in the ScriptLauncher
+- InfoPage in the TUI
+- Toggle TOC in Info Screen
 
 ### Fixed:
 - Argpanel is now scrollable
+- LogViewer didn't display anything
 
 
 ## [0.3.2] - 2026-01-16
