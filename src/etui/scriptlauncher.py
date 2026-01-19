@@ -17,7 +17,7 @@ from textual.widgets import (
     Checkbox,
     Static,
 )
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 
 from etui.config import (
     load_script_folders,
@@ -26,7 +26,7 @@ from etui.config import (
     restore_default_script_folders,
 )
 from etui.logging import create_log_file, format_line
-from etui.file_utils import TCSS_PATH, extract_argparse, ROOT_PATH, PYTHON_UV
+from etui.file_utils import TCSS_PATH, extract_argparse, ROOT_PATH, PYTHON_UV, Parser
 from etui.screen_helper import ArgFlagRow, ArgInputRow, QuestionScreen
 
 
@@ -46,13 +46,17 @@ class ScriptLauncher(Screen):
             options=[(name, name) for name in self.script_folders],
             value=list(self.script_folders.keys())[0],
             id="folder_select",
+            allow_blank=False,
         )
         self.script_list = ListView(id="script_list")
-        self.arg_panel = Vertical(id="argpanel")
+        self.parser_panel = Horizontal(id="parser_panel")
+        self.arg_panel = VerticalScroll(id="arg_panel")
         self.output_box = RichLog(id="output_box")
         self.input_box = Input(placeholder="Send input to script…", id="input_box")
         self.log_file_path: Path | None = None
         self.log_file: TextIOWrapper | None = None
+        self._parsers: dict[str, Parser] = {}
+        self.parser_select: Select | None = None
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -67,7 +71,7 @@ class ScriptLauncher(Screen):
 
             # RIGHT: arguments + output
             with Vertical(id="main"):
-                yield Label("Script Arguments:")
+                yield self.parser_panel
                 yield self.arg_panel
                 with Horizontal():
                     yield Button("Run Script", variant="success", id="run_button")
@@ -75,7 +79,6 @@ class ScriptLauncher(Screen):
                     yield Button("Stop Script", variant="error", id="stop_button")
                 yield self.output_box
                 yield self.input_box
-
         yield Footer()
 
     async def on_mount(self):
@@ -87,23 +90,39 @@ class ScriptLauncher(Screen):
         """Loads scripts when folder is selected."""
         if event.select is self.folder_select:
             self.load_scripts_for_folder(event.value)
+        elif event.select is self.parser_select:
+            await self.render_arguments(event.value)
 
     async def on_list_view_selected(self, message: ListView.Selected):
         """Gets and mounts arguments for chosen script."""
-        # ToDo: Add option for multiple parser
+        await self.parser_panel.remove_children()
         item = message.item  # This is a ListItem
         script_path: Path = item.script_path
-        # Clear old args
-        await self.arg_panel.remove_children()
-        arg_defs = extract_argparse(script_path, multiple_parsers=False)
-        if not arg_defs:
+        self._parsers = extract_argparse(script_path)
+        if not self._parsers:
             await self.arg_panel.mount(Label("No argparse arguments found."))
             return
-        for arg in arg_defs:
-            if arg["action"] == "store_true":
-                row = ArgFlagRow(arg["name"])
+        elif len(self._parsers) == 1:
+            for parser_name in self._parsers:
+                await self.render_arguments(parser_name)
+                return
+        self.parser_select = Select(
+            options=[(parser_name, parser_name) for parser_name in self._parsers],
+            value=list(self._parsers.keys())[0],
+            allow_blank=False,
+            id="parser_select",
+        )
+        await self.parser_panel.mount(Label("Command:"))
+        await self.parser_panel.mount(self.parser_select)
+
+    async def render_arguments(self, parser_name: str):
+        await self.arg_panel.remove_children()  # Clear old args
+        parser = self._parsers[parser_name]
+        for arg in parser.args:
+            if arg.action == "store_true":
+                row = ArgFlagRow(arg.name)
             else:
-                row = ArgInputRow(arg["name"], arg["default"])
+                row = ArgInputRow(arg.name, arg.default)
             await self.arg_panel.mount(row)
 
     async def action_run_script(self):
