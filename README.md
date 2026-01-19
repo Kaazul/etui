@@ -52,8 +52,6 @@ central point.
 
 ## Future Goals
 
- - Fix small bugs
- - Fix multiparser option
  - Implement a settings screen (for setting script folders, log retention settings, ...)
  - Implement for more than just python scripts
 

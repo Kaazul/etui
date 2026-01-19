@@ -20,8 +20,8 @@ class MainScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with Vertical(id="menu"):
-            yield Button("Scriptlauncher", id="scriptlauncher")
-            yield Button("Log Viewer", id="logview")
+            yield Button("ScriptLauncher", id="scriptlauncher")
+            yield Button("LogViewer", id="logview")
             yield Button("ScriptFolder Manager", id="foldermanager")
             yield Button("Info", id="info")
         yield Footer()
@@ -73,7 +73,7 @@ class ETui(App):
         super().__init__()
         ensure_user_configs()
         self.title = "ETUI"
-        self.subtitle = get_version()
+        self.sub_title = get_version()
 
     async def on_mount(self) -> None:
         cleanup_old_logs()
