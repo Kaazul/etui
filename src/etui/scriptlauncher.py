@@ -220,7 +220,6 @@ class ScriptLauncher(Screen):
         elif event.button.id == "stop_button":
             await self.action_terminate_process()
 
-    # ToDo: Add possibility to also start other files besides python files.
     def load_scripts_for_folder(self, folder_name: str):
         """Loads and displays all py scripts in chosen folder.
 
@@ -306,6 +305,9 @@ class ScriptFolderManager(Screen):
         name = self.name_input.value.strip()
         path = self.path_input.value.strip()
         python = self.python_input.value.strip()
+        if not Path(path).exists():
+            self.notify(f"Path {path} does not exist.", severity="error", timeout=3)
+            return
 
         python = python or str(PYTHON_UV)
 
@@ -313,7 +315,8 @@ class ScriptFolderManager(Screen):
 
         folders = load_script_folders()
         if name in folders:
-            raise Exception(f"Folder {name} already exists")
+            self.notify(f"Name {name} already exists.", severity="error", timeout=3)
+            return
         folders[name] = ScriptFolder(name, path, python, cwd)
         save_script_folders(folders)
         self.refresh_folder_list()
