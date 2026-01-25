@@ -1,6 +1,20 @@
 # ETUI
 CLI Scriptlauncher in a simple python TUI
 
+## Screenshots
+
+### MainScreen
+![MainScreen](docs/screenshots/main_screen.png)
+
+### ScriptLauncher
+![ScriptLauncher](docs/screenshots/scriptlauncher_run_script.png)
+
+### LogViewer
+![LogViewer](docs/screenshots/logviewer.png)
+
+## ScriptFolder Manager
+![ScriptFolderManager](docs/screenshots/foldermanager.png)
+
 ## Install
 
 First, find a nice spot in your directory to git clone the repo by using
