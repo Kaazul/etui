@@ -220,7 +220,6 @@ class ScriptLauncher(Screen):
         elif event.button.id == "stop_button":
             await self.action_terminate_process()
 
-    # ToDo: Add possibility to also start other files besides python files.
     def load_scripts_for_folder(self, folder_name: str):
         """Loads and displays all py scripts in chosen folder.
 

@@ -23,6 +23,7 @@ class MainScreen(Screen):
             yield Button("ScriptLauncher", id="scriptlauncher")
             yield Button("LogViewer", id="logview")
             yield Button("ScriptFolder Manager", id="foldermanager")
+            yield Button("Settings", id="settings")
             yield Button("Info", id="info")
         yield Footer()
 

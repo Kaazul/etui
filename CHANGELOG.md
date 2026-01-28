@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project (more or less) adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-01-20
+
+### Added:
+- Settings Screen
+
 ## [0.4.1] - 2026-01-19
 
 ### Added:
