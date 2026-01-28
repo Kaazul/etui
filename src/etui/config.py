@@ -99,11 +99,6 @@ class Config:
         ensure_user_configs()
         self.settings = load_settings()
         self.script_folders = load_script_folders()
-
-    @property
-    def log_retention_days(self) -> int:
-        return self.settings["logging"]["retention_days"]
-
-    @property
-    def log_dir(self) -> Path:
-        return USER_CONFIG_DIR / self.settings["logging"]["log_dir"]
+        self.log_retention_days = self.settings["logging"]["retention_days"]
+        self.log_path = self.settings["logging"]["log_path"]
+        self.theme = self.settings["tui"]["theme"]
